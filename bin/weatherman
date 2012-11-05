@@ -1,0 +1,17 @@
+require 'weatherman'
+
+ARGV.each do |script|
+  if File.exists?(script)
+    begin
+      load script
+    rescue => e
+      puts "Error loading #{script}:"
+      puts e.message
+      puts e.backtrace
+    end
+  else
+    puts "Could not find #{script}"
+  end
+end
+
+Process.daemon
