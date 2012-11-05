@@ -4,8 +4,14 @@ module Weatherman
   describe Report do
 
     before do
-      @report = Report.new 'test'
       @initial_thread_count = Thread.list.length
+
+      @namespace = 'TestNamespace'
+      @metric_name = 'TestMetric'
+      @metric_value = 'some metric value'
+      @report = Report.new @metric_name, :namespace => @namespace do
+        @metric_value
+      end
     end
 
     describe 'run' do
@@ -30,8 +36,8 @@ module Weatherman
 
         report.run
 
-        sleep 1.5
-        calls.length.should == 2
+        sleep 2
+        calls.length.should >= 2
       end
 
       it 'should do nothing if already running' do
@@ -84,15 +90,39 @@ module Weatherman
 
     describe 'report' do
       it 'should collect the metric' do
-        value = 'some metric value'
-        report = Report.new 'test' do
-          value
-        end
-
-        report.report.should == value
+        @report.report.should == @metric_value
       end
 
       it 'should report the metric' do
+        @report.cloud_watch.should_receive(:put_metric_data) do |namespace, metrics|
+          namespace.should == @namespace
+
+          metrics.length.should == 1
+          metric = metrics.first
+
+          metric['MetricName'].should == @metric_name
+        end
+
+        @report.report
+      end
+
+      it 'should include the instance ID as a dimension' do
+        instance_id = 'i-test'
+        AWS.should_receive(:instance_id).and_return(instance_id)
+
+        @report.cloud_watch.should_receive(:put_metric_data) do |namespace, metrics|
+          metrics.length.should == 1
+          metric = metrics.first
+          dimensions = metric['Dimensions']
+
+          dimensions.length.should == 1
+          dimensions.first['InstanceId'].should == instance_id
+        end
+
+        @report.report
+      end
+
+      it 'should include user-defined dimensions' do
         pending
       end
     end

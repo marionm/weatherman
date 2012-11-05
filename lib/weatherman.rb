@@ -1,3 +1,4 @@
+require 'fog'
 require 'ohai'
 
 require 'weatherman/version'
