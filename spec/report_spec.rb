@@ -6,6 +6,9 @@ module Weatherman
     before do
       @initial_thread_count = Thread.list.length
 
+      @instance_id = 'i-test'
+      AWS.should_receive(:instance_id).at_least(:once).and_return(@instance_id)
+
       @namespace = 'TestNamespace'
       @metric_name = 'TestMetric'
       @metric_value = 'some metric value'
@@ -106,25 +109,50 @@ module Weatherman
         @report.report
       end
 
-      it 'should include the instance ID as a dimension' do
-        instance_id = 'i-test'
-        AWS.should_receive(:instance_id).and_return(instance_id)
-
+      it 'should include the instance ID as a default dimension' do
         @report.cloud_watch.should_receive(:put_metric_data) do |namespace, metrics|
           metrics.length.should == 1
+
           metric = metrics.first
           dimensions = metric['Dimensions']
 
           dimensions.length.should == 1
-          dimensions.first['InstanceId'].should == instance_id
+          puts dimensions.inspect
+          dimensions.first['InstanceId'].should == @instance_id
         end
 
         @report.report
       end
 
-      it 'should include user-defined dimensions' do
-        pending
+      it 'should include user-defined dimensions plus the instance ID' do
+        user_dimensions = {
+          :alpha => 'beta',
+          :gamma => 'delta'
+        }
+        report = Report.new @metric_name, :namespace => @namespace, :dimensions => user_dimensions do
+          @metric_value
+        end
+
+        report.cloud_watch.should_receive(:put_metric_data) do |namespace, metrics|
+          metrics.length.should == 1
+
+          metric = metrics.first
+          dimensions = metric['Dimensions']
+
+          dimensions.length.should == 3
+
+          user_dimensions['InstanceId'] = @instance_id
+          user_dimensions.each do |k, v|
+            dimension = dimensions.find { |d| d.keys.first == k.to_s}
+            dimension.should_not be_nil
+            dimension.length.should == 1
+            dimension.values.first.should == v
+          end
+        end
+
+        report.report
       end
     end
+
   end
 end

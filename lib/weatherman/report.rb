@@ -12,11 +12,13 @@ module Weatherman
     end
 
     def initialize(name, options = {}, &collector)
-      @name = name
-      @collector = collector
+      @name       = name
+      @collector  = collector
+      @namespace  = options[:namespace] || 'Custom/Weatherman'
+      @period     = options[:period] || 12
+      @dimensions = options[:dimensions] || {}
 
-      @namespace = options[:namespace] || 'Custom/Weatherman'
-      @period = options[:period] || 12
+      @dimensions.merge! 'InstanceId' => AWS.instance_id
     end
 
     def run
@@ -42,10 +44,8 @@ module Weatherman
 
       cloud_watch.put_metric_data @namespace, [{
         'MetricName' => @name,
-        'Value' => value,
-        'Dimensions' => [{
-          'InstanceId' => AWS.instance_id
-        }]
+        'Value'      => value,
+        'Dimensions' => @dimensions.map { |k, v| { k.to_s => v } }
       }]
 
       value
