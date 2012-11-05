@@ -13,10 +13,6 @@ module Weatherman
         report = Report.run 'test' do; end
         report.should be_running
       end
-
-      it 'should get the instance ID' do
-        pending
-      end
     end
 
     describe 'run' do

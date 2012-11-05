@@ -1,6 +1,8 @@
 module Weatherman
   class Report
 
+    include AWS
+
     attr_reader :name, :options
 
     def self.run(name, options = {}, &collector)
@@ -13,7 +15,7 @@ module Weatherman
       @name = name
       @collector = collector
       @period = options[:period] || 12
-      #TODO: Get the instance ID from Ohai
+
     end
 
     def run
