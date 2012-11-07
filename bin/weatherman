@@ -1,19 +1,29 @@
 require 'weatherman'
 
-ARGV.each do |script|
-  if File.exists?(script)
-    begin
-      load script
-    rescue => e
-      puts "Error loading #{script}:"
-      puts e.message
-      puts e.backtrace
+Process.daemon
+
+ARGV << '/etc/weatherman.d' if ARGV.empty?
+
+ARGV.each do |path|
+  if File.exists?(path)
+    if File.directory?(path)
+      scripts = Dir["#{path}/**/*"].reject { |p| File.directory? p }
+    else
+      scripts = [path]
+    end
+
+    scripts.each do |script|
+      begin
+        load script
+      rescue => e
+        puts "Error loading #{script}:"
+        puts e.message
+        puts e.backtrace
+      end
     end
   else
-    puts "Could not find #{script}"
+    puts "Could not find #{path}"
   end
 end
-
-Process.daemon
 
 sleep
