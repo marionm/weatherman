@@ -155,6 +155,20 @@ module Weatherman
 
         report.broadcast @metric_value
       end
+
+      it "should not kill a running report's thread if there is an error" do
+        report = Report.new @metric_name, :period => 1 do
+          @metric_value
+        end
+
+        report.cloud_watch.should_receive(:put_metric_data).and_raise('some error')
+
+        report.run
+        thread_count = Thread.list.length
+
+        sleep 1.1
+        Thread.list.length.should == thread_count
+      end
     end
 
   end

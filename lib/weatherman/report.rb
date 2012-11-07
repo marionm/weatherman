@@ -41,11 +41,15 @@ module Weatherman
     end
 
     def broadcast(value)
-      cloud_watch.put_metric_data @namespace, [{
-        'MetricName' => @name,
-        'Value'      => value,
-        'Dimensions' => @dimensions.map { |k, v| { k.to_s => v } }
-      }]
+      begin
+        cloud_watch.put_metric_data @namespace, [{
+          'MetricName' => @name,
+          'Value'      => value,
+          'Dimensions' => @dimensions.map { |k, v| { k.to_s => v } }
+        }]
+      rescue
+        #TODO: Add loggging here, and throughout the gem
+      end
     end
 
   end
