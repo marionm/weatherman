@@ -117,7 +117,6 @@ module Weatherman
           dimensions = metric['Dimensions']
 
           dimensions.length.should == 1
-          puts dimensions.inspect
           dimensions.first['InstanceId'].should == @instance_id
         end
 
