@@ -15,3 +15,5 @@ ARGV.each do |script|
 end
 
 Process.daemon
+
+sleep
