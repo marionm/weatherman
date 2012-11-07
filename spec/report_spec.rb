@@ -39,7 +39,7 @@ module Weatherman
 
         report.run
 
-        sleep 2
+        sleep 3
         calls.length.should >= 2
       end
 
@@ -91,36 +91,44 @@ module Weatherman
       end
     end
 
-    describe 'report' do
+    describe 'sample_metric' do
       it 'should collect the metric' do
-        @report.report.should == @metric_value
-      end
+        called = false
+        report = Report.new @metric_name do
+          called = true
+          @metric_value
+        end
 
-      it 'should report the metric' do
+        result = report.sample_metric
+
+        result.should == @metric_value
+        called.should == true
+      end
+    end
+
+    describe 'broadcast' do
+      it 'should send the metric to CloudWatch' do
         @report.cloud_watch.should_receive(:put_metric_data) do |namespace, metrics|
           namespace.should == @namespace
 
           metrics.length.should == 1
           metric = metrics.first
 
+          metric['Value'].should == @metric_value
           metric['MetricName'].should == @metric_name
         end
 
-        @report.report
+        @report.broadcast @metric_value
       end
 
       it 'should include the instance ID as a default dimension' do
         @report.cloud_watch.should_receive(:put_metric_data) do |namespace, metrics|
-          metrics.length.should == 1
-
-          metric = metrics.first
-          dimensions = metric['Dimensions']
-
+          dimensions = metrics.first['Dimensions']
           dimensions.length.should == 1
           dimensions.first['InstanceId'].should == @instance_id
         end
 
-        @report.report
+        @report.broadcast @metric_value
       end
 
       it 'should include user-defined dimensions plus the instance ID' do
@@ -133,11 +141,7 @@ module Weatherman
         end
 
         report.cloud_watch.should_receive(:put_metric_data) do |namespace, metrics|
-          metrics.length.should == 1
-
-          metric = metrics.first
-          dimensions = metric['Dimensions']
-
+          dimensions = metrics.first['Dimensions']
           dimensions.length.should == 3
 
           user_dimensions['InstanceId'] = @instance_id
@@ -149,7 +153,7 @@ module Weatherman
           end
         end
 
-        report.report
+        report.broadcast @metric_value
       end
     end
 

@@ -23,10 +23,7 @@ module Weatherman
 
     def run
       @thread ||= Thread.new do
-        while true
-          report
-          sleep @period
-        end
+        broadcast sample_metric while sleep @period
       end
     end
 
@@ -39,16 +36,16 @@ module Weatherman
       !@thread.nil?
     end
 
-    def report
-      value = @collector.call
+    def sample_metric
+      @collector.call
+    end
 
+    def broadcast(value)
       cloud_watch.put_metric_data @namespace, [{
         'MetricName' => @name,
         'Value'      => value,
         'Dimensions' => @dimensions.map { |k, v| { k.to_s => v } }
       }]
-
-      value
     end
 
   end
