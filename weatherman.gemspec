@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
 require "weatherman/version"
 
@@ -18,7 +17,9 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
+  s.add_development_dependency "rake"
   s.add_development_dependency "rspec"
+
   s.add_runtime_dependency "fog", "~> 1.7.0"
   s.add_runtime_dependency "ohai", "~> 6.14.0"
 end
