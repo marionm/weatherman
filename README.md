@@ -40,7 +40,7 @@ Report takes an optional hash as a second argument. Supported keys with the defa
 
 *Daemonizing*
 
-The gem installs a 'weatherman' executable to your path. Pass as many Weatherman scripts to it as you want, each of which will be loaded and run in the background.
+The gem installs a 'weatherman' executable to your path. Provide it with paths to Weatherman scripts (or folders containing them). If provided with no arguments, it will check /etc/weatherman.d for scripts.
 
 ## License
 
